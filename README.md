@@ -1,6 +1,6 @@
 # 📦 Warehouse Inventory & Procurement Management Platform
 
-> **A production-oriented backend platform for warehouse operations, inventory control, procurement workflows, stock transfers, real-time alerts, analytics, and automated background processing.**
+A production-oriented backend platform for warehouse operations, inventory control, procurement workflows, stock transfers, real-time alerts, analytics, and automated background processing.**
 
 Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **Alembic**, **JWT authentication**, **Redis**, **Celery**, **WebSockets**, **Docker**, and **Pytest**.
 
