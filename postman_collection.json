@@ -1,0 +1,160 @@
+{
+  "info": {
+    "name": "Warehouse Inventory & Procurement Platform API",
+    "_postman_id": "b1a2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "Complete Postman collection for Warehouse Inventory and Procurement Backend platform.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@warehouse.com\",\n  \"password\": \"admin123\",\n  \"full_name\": \"System Admin\",\n  \"role\": \"SUPER_ADMIN\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "register"]}
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@warehouse.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Warehouses",
+      "item": [
+        {
+          "name": "Create Warehouse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Distribution Center\",\n  \"code\": \"WH-MAIN\",\n  \"address\": \"100 Logistics Blvd\",\n  \"capacity\": 10000.0\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/v1/warehouses", "host": ["{{baseUrl}}"], "path": ["api", "v1", "warehouses"]}
+          }
+        },
+        {
+          "name": "Get Warehouses",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/api/v1/warehouses", "host": ["{{baseUrl}}"], "path": ["api", "v1", "warehouses"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "Create Supplier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Global Electronics Ltd\",\n  \"contact_person\": \"John Smith\",\n  \"email\": \"john@globalelectronics.com\",\n  \"phone\": \"+1234567890\",\n  \"gst_number\": \"GST99887766\",\n  \"address\": \"45 Tech Park\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/v1/suppliers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "suppliers"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"PRD-LOGIC-01\",\n  \"name\": \"Smart Circuit Controller\",\n  \"category\": \"Microcontrollers\",\n  \"brand\": \"TechLabs\",\n  \"cost_price\": 45.0,\n  \"selling_price\": 75.0,\n  \"reorder_level\": 10\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/v1/products", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products"]}
+          }
+        },
+        {
+          "name": "Get Product Barcode SVG",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/api/v1/products/1/barcode", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products", "1", "barcode"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "Stock In",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": 1,\n  \"warehouse_id\": 1,\n  \"quantity\": 100,\n  \"reference_id\": \"INITIAL-RESTOCK\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/v1/inventory/stock-in", "host": ["{{baseUrl}}"], "path": ["api", "v1", "inventory", "stock-in"]}
+          }
+        },
+        {
+          "name": "Forecast Demand",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/api/v1/inventory/forecast/1", "host": ["{{baseUrl}}"], "path": ["api", "v1", "inventory", "forecast", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Dashboard KPIs",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/api/v1/analytics/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "v1", "analytics", "dashboard"]}
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8000"},
+    {"key": "token", "value": ""}
+  ]
+}
