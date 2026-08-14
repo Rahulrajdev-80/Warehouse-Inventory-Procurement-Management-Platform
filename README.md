@@ -1,638 +1,1155 @@
-Warehouse Inventory & Procurement Management Platform
-A production-oriented backend system for managing warehouse operations, inventory, procurement, stock transfers, goods receipts, suppliers, products, users, authentication, alerts, and analytics.
+# 📦 Warehouse Inventory & Procurement Management Platform
 
-The application is built using FastAPI, PostgreSQL, SQLAlchemy, Alembic, JWT Authentication, Redis caching, and a layered architecture separating APIs, services, repositories, models, and schemas.
+> **A production-oriented backend platform for warehouse operations, inventory control, procurement workflows, stock transfers, real-time alerts, analytics, and automated background processing.**
 
-🚀 Project Overview
-The Warehouse Inventory & Procurement Management Platform provides a centralized backend for managing inventory across warehouses and handling the complete procurement lifecycle.
+Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **Alembic**, **JWT authentication**, **Redis**, **Celery**, **WebSockets**, **Docker**, and **Pytest**.
 
-The platform supports:
+---
 
-User authentication and authorization
-Role-based access control
-Warehouse management
-Product and category management
-Supplier management
-Inventory management
-Stock-in and stock-out operations
-Inventory reservations and releases
-Damaged stock management
-Inventory reconciliation
-Purchase order lifecycle
-Goods receipt processing
-Inter-warehouse stock transfers
-Inventory alerts
-Analytics and dashboards
-Redis-based inventory caching
-WebSocket-based alerts
-Background task support
-Database migrations using Alembic
-Automated testing with Pytest
-🏗️ Architecture
-The project follows a layered architecture:
+## 🚀 Overview
 
-Client
-   │
-   ▼
-FastAPI API Layer
-   │
-   ▼
-Service Layer
-   │
-   ▼
-Repository Layer
-   │
-   ▼
-SQLAlchemy Models
-   │
-   ▼
-PostgreSQL Database
+The **Warehouse Inventory & Procurement Management Platform** is a backend system designed to centralize warehouse and inventory operations while supporting the complete procurement lifecycle.
 
-                 ┌───────────────┐
-                 │    FastAPI    │
-                 └───────┬───────┘
-                         │
-          ┌──────────────┼──────────────┐
-          ▼              ▼              ▼
-     PostgreSQL        Redis        WebSocket
-          │              │              │
-          ▼              ▼              ▼
-      Database        Caching        Real-time
-                                    Notifications
+The platform provides APIs for:
 
-🛠️ Technology Stack Backend Python FastAPI SQLAlchemy Pydantic PostgreSQL Alembic Authentication & Security JWT Authentication Access Tokens Refresh Tokens Password hashing Role-Based Access Control (RBAC) Protected API endpoints Caching Redis Inventory cache Cache invalidation after inventory changes Real-Time Communication WebSockets Inventory alert notifications Background Processing Celery Background scheduler/tasks Testing Pytest FastAPI TestClient unittest.mock MagicMock Service-layer unit testing Development Git Docker Docker Compose Uvicorn ``
+* 🔐 User registration and authentication
+* 👥 Role-based access control
+* 🏭 Warehouse management
+* 📦 Product management
+* 🚚 Supplier management
+* 📊 Inventory management
+* 📥 Stock-in operations
+* 📤 Stock-out operations
+* 🔄 Inventory adjustments
+* 📈 Inventory history and forecasting
+* 🧾 Purchase order management
+* 📦 Purchase order receiving
+* 🔁 Inter-warehouse stock transfers
+* 🚨 Inventory alerts
+* 📊 Warehouse and supplier analytics
+* ⚡ Redis-based caching
+* 🔌 Real-time WebSocket communication
+* ⏱️ Celery background tasks
+* 📅 Celery Beat scheduled jobs
+* 🏷️ SKU barcode generation
+* 📄 CSV import support
+* 🗄️ PostgreSQL persistence
+* 🔄 Alembic database migrations
+* 🧪 Automated testing
+* 🐳 Dockerized development environment
 
-📁 Project Structure
-warehouse-management/
+---
+
+# ✨ Key Features
+
+## 🔐 Authentication & Authorization
+
+The API uses **JWT-based authentication** with access and refresh tokens.
+
+### Authentication capabilities
+
+* User registration
+* User login
+* Access token generation
+* Refresh token generation
+* Password reset endpoint
+* Current authentication context
+* Password hashing
+* Protected API endpoints
+* Role-based authorization
+
+### Supported roles
+
+```text
+SUPER_ADMIN
+WAREHOUSE_MANAGER
+INVENTORY_STAFF
+PROCUREMENT_OFFICER
+```
+
+Protected operations can be restricted according to the authenticated user's role.
+
+---
+
+# 🏭 Warehouse Management
+
+The warehouse module provides APIs for managing warehouse locations and their operational status.
+
+### Supported operations
+
+* Create warehouse
+* List warehouses
+* Retrieve warehouse
+* Update warehouse
+* Disable warehouse
+* Warehouse-based inventory tracking
+
+Inventory is maintained at the **product + warehouse** level.
+
+---
+
+# 📦 Product Management
+
+Products are the core inventory entities within the platform.
+
+### Supported operations
+
+* Create product
+* List products
+* Retrieve product
+* Update product
+* Archive product
+* Generate SKU barcode
+* Import products through CSV
+
+Products contain inventory-related information such as:
+
+* SKU
+* Product name
+* Category
+* Brand
+* Cost price
+* Selling price
+* Reorder level
+
+---
+
+# 🚚 Supplier Management
+
+Supplier APIs support supplier lifecycle management and procurement relationships.
+
+### Supported operations
+
+* Create supplier
+* List suppliers
+* Retrieve supplier
+* Update supplier
+* Suspend supplier
+* View supplier purchase history
+
+Supplier information is linked to purchase order workflows.
+
+---
+
+# 📊 Inventory Management
+
+Inventory is tracked independently for every **product and warehouse combination**.
+
+The system maintains:
+
+```text
+Available Quantity
+Reserved Quantity
+Damaged Quantity
+```
+
+### Inventory operations
+
+| Operation     | Description                                |
+| ------------- | ------------------------------------------ |
+| 📥 Stock In   | Adds inventory to a warehouse              |
+| 📤 Stock Out  | Removes available inventory                |
+| 🔧 Adjust     | Updates inventory quantities               |
+| 📜 History    | Tracks inventory transactions              |
+| 📈 Forecast   | Estimates future demand and stock coverage |
+| 📄 CSV Import | Imports inventory data                     |
+
+### Inventory flow
+
+```text
+                API Request
+                     │
+                     ▼
+              Authentication
+                     │
+                     ▼
+              Request Validation
+                     │
+                     ▼
+             Inventory Service
+                     │
+          ┌──────────┴──────────┐
+          ▼                     ▼
+   Validate Product       Validate Warehouse
+          │                     │
+          └──────────┬──────────┘
+                     ▼
+              Update Inventory
+                     │
+                     ▼
+           Record Transaction
+                     │
+                     ▼
+             Cache Invalidation
+                     │
+                     ▼
+               Alert Check
+                     │
+                     ▼
+                  Response
+```
+
+---
+
+# 📈 Inventory Forecasting
+
+The platform includes a lightweight inventory forecasting service.
+
+The forecast is calculated using recent inventory movement history.
+
+It considers:
+
+* Current total stock
+* Stock-out activity
+* Transfer-out activity
+* Average daily demand
+* Estimated 30-day demand
+* Recommended reorder quantity
+* Estimated days of supply remaining
+
+Example forecast response concepts:
+
+```text
+Current Stock
+     │
+     ▼
+30-Day Historical Demand
+     │
+     ▼
+Average Daily Demand
+     │
+     ├──► Predicted 30-Day Demand
+     │
+     ├──► Recommended Reorder Quantity
+     │
+     └──► Days of Supply Remaining
+```
+
+---
+
+# 🧾 Procurement & Purchase Orders
+
+The purchase order module manages the procurement lifecycle between warehouses and suppliers.
+
+### Purchase order capabilities
+
+* Create purchase orders
+* List purchase orders
+* Retrieve purchase orders
+* Update purchase orders
+* Approve purchase orders
+* Cancel purchase orders
+* Receive purchased goods
+* Track received quantities
+* Support partial receiving
+* Update inventory after receiving
+
+### Purchase order lifecycle
+
+```text
+DRAFT
+  │
+  ▼
+APPROVED
+  │
+  ▼
+RECEIVING
+  │
+  ├──────────────► PARTIAL RECEIPT
+  │                      │
+  │                      ▼
+  └──────────────────► COMPLETED
+```
+
+Receiving validates ordered quantities before updating warehouse inventory.
+
+---
+
+# 📥 Goods Receiving
+
+Purchase order receiving automatically connects procurement with inventory.
+
+The receiving flow is:
+
+```text
+Purchase Order
+      │
+      ▼
+Receive Goods
+      │
+      ▼
+Validate Product
+      │
+      ▼
+Validate Ordered Quantity
+      │
+      ▼
+Update Received Quantity
+      │
+      ▼
+Increase Warehouse Inventory
+      │
+      ▼
+Update Purchase Order Status
+```
+
+This allows procurement operations to directly affect warehouse stock.
+
+---
+
+# 🔄 Inter-Warehouse Stock Transfers
+
+Stock can be transferred between warehouses.
+
+### Transfer lifecycle
+
+```text
+REQUESTED
+    │
+    ▼
+APPROVED
+    │
+    ▼
+IN_TRANSIT
+    │
+    ▼
+RECEIVED
+```
+
+The transfer service validates:
+
+* Source warehouse
+* Destination warehouse
+* Source and destination are different
+* Product availability
+* Transfer quantities
+* Source inventory
+
+### Transfer flow
+
+```text
+Source Warehouse
+      │
+      │  Stock Out
+      ▼
+  IN_TRANSIT
+      │
+      │  Stock In
+      ▼
+Destination Warehouse
+```
+
+---
+
+# 🚨 Inventory Alerts
+
+The platform includes automated inventory alert processing.
+
+Alerts can be generated when inventory reaches configured reorder thresholds.
+
+Supported alert concepts include:
+
+* Low-stock alerts
+* Out-of-stock alerts
+* Alert acknowledgement
+* Automated background scanning
+
+The alert task periodically checks inventory and creates alerts when required.
+
+---
+
+# ⚡ Redis Caching
+
+Redis is used for asynchronous caching and messaging support.
+
+Inventory reads can follow this flow:
+
+```text
+Client Request
+      │
+      ▼
+   Redis Cache
+      │
+ ┌────┴────┐
+ │         │
+Hit       Miss
+ │         │
+ ▼         ▼
+Return   PostgreSQL
+            │
+            ▼
+        Store in Redis
+            │
+            ▼
+          Return
+```
+
+Inventory-changing operations invalidate relevant cached data to reduce stale reads.
+
+---
+
+# 🔌 WebSocket Real-Time Communication
+
+The project provides WebSocket endpoints for real-time communication.
+
+### Available WebSocket channels
+
+```text
+/ws/inventory
+/ws/alerts
+/ws/transfers
+```
+
+WebSockets can be used for:
+
+* Inventory events
+* Alert notifications
+* Transfer events
+* Real-time client communication
+
+Example architecture:
+
+```text
+                    FastAPI
+                       │
+          ┌────────────┼────────────┐
+          ▼            ▼            ▼
+      Inventory      Alerts      Transfers
+          │            │            │
+          └────────────┼────────────┘
+                       ▼
+                WebSocket Manager
+                       │
+                       ▼
+                Connected Clients
+```
+
+---
+
+# ⏱️ Background Processing
+
+Background processing is implemented using **Celery** with Redis as the broker/backend.
+
+The project contains separate task modules for:
+
+```text
+app/tasks/
+├── celery_app.py
+├── inventory_tasks.py
+├── alert_tasks.py
+└── report_tasks.py
+```
+
+### Scheduled operations
+
+Celery Beat is configured for tasks including:
+
+* Inventory reconciliation
+* Low-stock and expired-product checks
+* Supplier performance calculation
+* Daily inventory reporting
+
+### Background architecture
+
+```text
+              Celery Beat
+                   │
+                   ▼
+             Scheduled Tasks
+                   │
+                   ▼
+              Redis Broker
+                   │
+                   ▼
+             Celery Worker
+                   │
+          ┌────────┼────────┐
+          ▼        ▼        ▼
+      Inventory  Alerts   Reports
+```
+
+---
+
+# 🏷️ Barcode Generation
+
+The platform includes SKU barcode generation using **python-barcode**.
+
+Products can expose a barcode representation through the product API.
+
+The barcode service supports **Code 128** SVG generation.
+
+---
+
+# 📄 CSV Import
+
+CSV-based import functionality is available for:
+
+* Products
+* Inventory
+
+This provides a convenient way to load bulk operational data into the platform.
+
+---
+
+# 📊 Analytics
+
+The analytics module provides authenticated endpoints for:
+
+* Dashboard analytics
+* Inventory analytics
+* Supplier analytics
+* Warehouse analytics
+
+These endpoints provide a foundation for operational reporting and future dashboard integrations.
+
+---
+
+# 🏗️ Architecture
+
+The application follows a layered backend architecture.
+
+```text
+                         Client
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   FastAPI   │
+                    │  API Layer  │
+                    └──────┬──────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   Services  │
+                    │ Business    │
+                    │   Logic     │
+                    └──────┬──────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │ SQLAlchemy  │
+                    │    ORM      │
+                    └──────┬──────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │ PostgreSQL  │
+                    └─────────────┘
+
+
+        ┌──────────────────────────────────┐
+        │          Supporting Services      │
+        ├──────────────────────────────────┤
+        │ Redis                             │
+        │ Celery Worker                     │
+        │ Celery Beat                       │
+        │ WebSocket Manager                 │
+        └──────────────────────────────────┘
+```
+
+---
+
+# 🛠️ Technology Stack
+
+| Area                   | Technology        |
+| ---------------------- | ----------------- |
+| Language               | Python 3.11       |
+| API Framework          | FastAPI           |
+| ASGI Server            | Uvicorn           |
+| ORM                    | SQLAlchemy 2.x    |
+| Database               | PostgreSQL 15     |
+| Async Database Driver  | asyncpg           |
+| Sync PostgreSQL Driver | psycopg2          |
+| Validation             | Pydantic 2        |
+| Configuration          | Pydantic Settings |
+| Authentication         | JWT / python-jose |
+| Password Hashing       | Passlib / bcrypt  |
+| Cache & Broker         | Redis 7           |
+| Background Tasks       | Celery            |
+| Scheduling             | Celery Beat       |
+| Migrations             | Alembic           |
+| Barcode                | python-barcode    |
+| Data Processing        | Pandas            |
+| Testing                | Pytest            |
+| Async Testing          | pytest-asyncio    |
+| HTTP Testing           | HTTPX             |
+| Containerization       | Docker            |
+| Orchestration          | Docker Compose    |
+
+---
+
+# 📁 Project Structure
+
+```text
+warehouse-inventory/
 │
 ├── app/
-│   ├── main.py
-│   │
 │   ├── api/
-│   │   ├── alerts.py
-│   │   ├── analytics.py
-│   │   ├── auth.py
-│   │   ├── categories.py
-│   │   ├── goods_receipts.py
-│   │   ├── inventory.py
-│   │   ├── products.py
-│   │   ├── purchase_orders.py
-│   │   ├── stock_transfers.py
-│   │   ├── suppliers.py
-│   │   ├── users.py
-│   │   ├── warehouses.py
-│   │   └── websocket.py
-│   │
-│   ├── background/
-│   │   ├── scheduler.py
-│   │   └── tasks.py
-│   │
-│   ├── core/
-│   │   ├── celery_app.py
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── logger.py
-│   │   ├── redis.py
-│   │   ├── security.py
-│   │   ├── websocket.py
-│   │   └── websocket_manager.py
-│   │
-│   ├── dependencies/
-│   │   └── auth.py
-│   │
-│   ├── exceptions/
-│   │   ├── custom_exceptions.py
-│   │   └── handlers.py
+│   │   └── v1/
+│   │       ├── alerts.py
+│   │       ├── analytics.py
+│   │       ├── auth.py
+│   │       ├── inventory.py
+│   │       ├── products.py
+│   │       ├── purchase_orders.py
+│   │       ├── suppliers.py
+│   │       ├── transfers.py
+│   │       └── warehouses.py
 │   │
 │   ├── models/
 │   │   ├── alert.py
-│   │   ├── category.py
-│   │   ├── goods_receipt.py
 │   │   ├── inventory.py
-│   │   ├── inventory_transaction.py
-│   │   ├── password_reset.py
 │   │   ├── product.py
 │   │   ├── purchase_order.py
-│   │   ├── refresh_token.py
-│   │   ├── role.py
 │   │   ├── stock_transfer.py
 │   │   ├── supplier.py
 │   │   ├── user.py
 │   │   └── warehouse.py
-│   │
-│   ├── repositories/
-│   │   ├── alert_repository.py
-│   │   ├── analytics_repository.py
-│   │   ├── auth_repository.py
-│   │   ├── category_repository.py
-│   │   ├── goods_receipt_repository.py
-│   │   ├── inventory_repository.py
-│   │   ├── password_reset_repository.py
-│   │   ├── product_repository.py
-│   │   ├── purchase_order_repository.py
-│   │   ├── role_repository.py
-│   │   ├── stock_transfer_repository.py
-│   │   ├── supplier_repository.py
-│   │   ├── user_repository.py
-│   │   └── warehouse_repository.py
 │   │
 │   ├── schemas/
 │   │   ├── alert.py
 │   │   ├── analytics.py
 │   │   ├── auth.py
-│   │   ├── category.py
-│   │   ├── goods_receipt.py
 │   │   ├── inventory.py
 │   │   ├── product.py
 │   │   ├── purchase_order.py
 │   │   ├── stock_transfer.py
 │   │   ├── supplier.py
-│   │   ├── user.py
 │   │   └── warehouse.py
 │   │
-│   └── services/
-│       ├── alert_service.py
-│       ├── analytics_service.py
-│       ├── auth_service.py
-│       ├── category_service.py
-│       ├── goods_receipt_service.py
-│       ├── inventory_cache_service.py
-│       ├── inventory_service.py
-│       ├── product_service.py
-│       ├── purchase_order_service.py
-│       ├── stock_transfer_service.py
-│       ├── supplier_service.py
-│       ├── user_service.py
-│       └── warehouse_service.py
+│   ├── services/
+│   │   ├── auth_service.py
+│   │   ├── barcode_service.py
+│   │   ├── csv_service.py
+│   │   ├── forecasting_service.py
+│   │   ├── inventory_service.py
+│   │   ├── po_service.py
+│   │   └── transfer_service.py
+│   │
+│   ├── tasks/
+│   │   ├── celery_app.py
+│   │   ├── inventory_tasks.py
+│   │   ├── alert_tasks.py
+│   │   └── report_tasks.py
+│   │
+│   ├── utils/
+│   │   ├── email_notifier.py
+│   │   └── redis_client.py
+│   │
+│   ├── websockets/
+│   │   ├── connection_manager.py
+│   │   └── router.py
+│   │
+│   ├── config.py
+│   ├── database.py
+│   ├── security.py
+│   └── main.py
 │
-├── migrations/
+├── alembic/
+│   ├── env.py
+│   └── versions/
+│       └── 001_initial_schema.py
+│
+├── docs/
+│   ├── celery_workflow.md
+│   ├── schema_diagram.md
+│   ├── system_architecture.md
+│   └── websocket_flow.md
+│
 ├── tests/
 │   ├── conftest.py
-│   ├── test_analytics.py
+│   ├── test_alerts.py
 │   ├── test_auth.py
-│   ├── test_goods_receipt_service.py
-│   ├── test_health.py
 │   ├── test_inventory.py
-│   ├── test_inventory_service.py
-│   ├── test_purchase_order_service.py
-│   ├── test_stock_transfer_service.py
-│   └── test_websocket.py
+│   ├── test_purchase_orders.py
+│   └── test_transfers.py
 │
 ├── .env.example
 ├── .gitignore
 ├── alembic.ini
 ├── Dockerfile
 ├── docker-compose.yml
+├── openapi.json
+├── postman_collection.json
 ├── requirements.txt
-├── test_db.py
 └── README.md
+```
 
-🔐 Authentication
-The platform uses JWT-based authentication.
+---
 
-Authentication functionality includes:
+# 🐳 Docker Setup
 
-User registration User login Access token generation Refresh token generation Token refresh Logout Current-user endpoint Invalid token handling Password validation Role-based authorization
+The included Docker Compose configuration provides the main infrastructure required by the application.
 
-Protected endpoints require a valid JWT access token.
+### Services
 
-Example:
-
-Authorization: Bearer <access_token>
-
-👥 Role-Based Access Control
-The application supports role-based access control to restrict operations based on user permissions.
-
-Roles can be used to control access to:
-
-Users Warehouses Products Suppliers Inventory Procurement Stock transfers Analytics Administrative operations
-
-📦 Inventory Management
-The inventory module manages stock at warehouse level.
-
-Supported operations:
-
-Stock In
-
-Adds inventory to a warehouse.
-
-Stock In
-   │
-   ├── Validate Product
-   ├── Validate Warehouse
-   ├── Increase Available Quantity
-   ├── Create Inventory Transaction
-   ├── Invalidate Cache
-   └── Check Inventory Alert
-Stock Out
-Removes inventory from a warehouse while validating available stock.
-
-Reserve
-
-Moves stock from available quantity to reserved quantity.
-
-Release
-
-Moves reserved stock back to available stock.
-
-Damage
-
-Moves available inventory into damaged inventory.
-
-Adjust
-
-Updates physical inventory quantities.
-
-Reconcile
-
-Compares physical stock with system inventory and adjusts the available quantity accordingly.
-
-🏭 Warehouse Management
-Warehouse functionality includes:
-
-Warehouse creation Warehouse retrieval Warehouse updates Warehouse status management Active/inactive warehouse validation Warehouse-based inventory management
-
-Inventory is maintained separately for each warehouse.
-
-📦 Product & Category Management
-The product module provides product lifecycle management.
-
-Supported functionality includes:
-
-Product creation Product retrieval Product updates Product status Category association Product validation
-
-Categories provide logical grouping for warehouse products.
-
-🚚 Supplier Management
-Supplier management provides functionality for maintaining supplier information used during procurement.
-
-Suppliers are associated with purchase orders and procurement operations.
-
-🧾 Purchase Order Management
-The Purchase Order module manages the procurement lifecycle.
-
-The purchase order lifecycle includes:
-
-DRAFT
-  │
-  ▼
-PENDING_APPROVAL
-  │
-  ├──────────────► REJECTED
-  │
-  ▼
-APPROVED
-  │
-  ▼
-ORDERED
-  │
-  ├──────────────► PARTIALLY_RECEIVED
-  │                         │
-  │                         ▼
-  └────────────────────► RECEIVED
-Supported operations:
-
-Generate purchase order number Create purchase orders Submit purchase orders Approve purchase orders Reject purchase orders Cancel purchase orders Mark orders as ordered Receive purchase orders Partial receiving Quantity validation Product validation Status validation
-
-📥 Goods Receipt Management
-Goods receipts are used to record products physically received against purchase orders.
-
-The system validates:
-
-Purchase order existence Purchase order status Duplicate products Products belonging to the purchase order Remaining quantities Received quantities
-
-The system supports:
-
-Full goods receipt Partial goods receipt Inventory updates Purchase order status updates Goods receipt records Atomic database rollback
-
-Example:
-
-Purchase Order
+```text
+┌───────────────────────┐
+│       Backend         │
+│       FastAPI         │
+│       :8000           │
+└───────────┬───────────┘
+            │
+      ┌─────┴─────┐
+      ▼           ▼
+ PostgreSQL     Redis
+   :5432         :6379
+      │           │
+      │     ┌─────┴──────┐
+      │     ▼            ▼
+      │  Celery       Celery
+      │  Worker        Beat
       │
-      ▼
-   ORDERED
-      │
-      ▼
-Goods Receipt
-      │
-      ├── Update PO received quantity
-      ├── Increase warehouse inventory
-      ├── Create receipt
-      └── Update PO status
-             │
-             ├── PARTIALLY_RECEIVED
-             │
-             └── RECEIVED
-🔄 Stock Transfer Management
-Stock transfers allow inventory to move between warehouses.
+      └──────────────────┘
+```
 
-Transfer lifecycle:
+### Start the complete stack
 
-REQUESTED
-    │
-    ├────────────► REJECTED
-    │
-    ▼
- APPROVED
-    │
-    ▼
-IN_TRANSIT
-    │
-    ▼
- RECEIVED
-Supported operations:
+```bash
+docker-compose up --build
+```
 
-Create transfer Validate source warehouse Validate destination warehouse Prevent same-warehouse transfers Validate products Prevent duplicate products Approve transfers Validate source inventory Reject transfers Dispatch transfers Deduct stock from source warehouse Receive transfers Add stock to destination warehouse
+### Start in detached mode
 
-🚨 Inventory Alerts
-The system includes inventory alert functionality.
+```bash
+docker-compose up -d
+```
 
-Alerts can be triggered when inventory reaches configured conditions such as low-stock situations.
+### Stop the stack
 
-Alert functionality is integrated with inventory operations.
+```bash
+docker-compose down
+```
 
-📊 Analytics
-The analytics module provides warehouse and inventory insights.
+### Rebuild after code/dependency changes
 
-Supported analytics areas include:
+```bash
+docker-compose up --build
+```
 
-Dashboard analytics Inventory analytics Supplier analytics Warehouse analytics
+---
 
-Analytics endpoints require authentication.
+# 🐍 Local Development Setup
 
-⚡ Redis Inventory Caching
-Inventory lookup operations support Redis caching.
+## 1. Clone the repository
 
-The flow is:
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd warehouse-inventory
+```
 
-Request
-   │
-   ▼
-Check Redis Cache
-   │
-   ├── Cache Hit ──► Return Cached Inventory
-   │
-   └── Cache Miss
-           │
-           ▼
-      PostgreSQL
-           │
-           ▼
-      Store in Cache
-           │
-           ▼
-        Return
-Inventory cache is invalidated whenever inventory changes.
+## 2. Create a virtual environment
 
-This reduces unnecessary database queries for frequently accessed inventory information.
+### Windows
 
-🔌 WebSocket Alerts
-The application includes WebSocket support for real-time alert communication.
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+```
 
-WebSockets can be used to push inventory-related alerts to connected clients without requiring continuous polling.
+### Linux / macOS
 
-⏱️ Background Processing
-The project contains background processing infrastructure for scheduled and asynchronous tasks.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-Components include:
+## 3. Install dependencies
 
-Celery application Background tasks Scheduler
+```bash
+pip install -r requirements.txt
+```
 
-🗄️ Database
-The project uses:
+## 4. Configure environment variables
 
-PostgreSQL
+Create a local `.env` file based on `.env.example`.
+
+```text
+.env.example
      │
      ▼
-SQLAlchemy ORM
+   copy
      │
      ▼
-Alembic Migrations
-Database migrations are managed using Alembic.
+   .env
+```
 
-🔄 Database Migrations
-Initialize migrations:
+Configure your local:
 
+* PostgreSQL connection
+* Redis connection
+* JWT secret
+* SMTP settings
+
+**Never commit your real `.env` file or production credentials.**
+
+## 5. Run database migrations
+
+```bash
 alembic upgrade head
+```
 
-Create a migration:
+## 6. Start the API
 
-alembic revision --autogenerate -m "migration message"
+```bash
+uvicorn app.main:app --reload
+```
+
+The API will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+# 📚 API Documentation
+
+FastAPI automatically generates interactive API documentation.
+
+### Swagger UI
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### ReDoc
+
+```text
+http://127.0.0.1:8000/redoc
+```
+
+### OpenAPI schema
+
+```text
+http://127.0.0.1:8000/openapi.json
+```
+
+The repository also includes:
+
+```text
+openapi.json
+postman_collection.json
+```
+
+for API exploration and testing.
+
+---
+
+# 🔄 Database Migrations
+
+Create a migration after model changes:
+
+```bash
+alembic revision --autogenerate -m "describe migration"
+```
 
 Apply migrations:
 
+```bash
 alembic upgrade head
+```
 
-Rollback the latest migration:
+Rollback one migration:
 
+```bash
 alembic downgrade -1
+```
 
-⚙️ Environment Configuration
-Create a .env file based on .env.example.
+---
 
-Example:
+# 🧪 Testing
 
-DATABASE_URL=postgresql://postgres:password@localhost:5432/warehouse_db
+The project uses:
 
-SECRET_KEY=your-secret-key
-
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-REFRESH_TOKEN_EXPIRE_DAYS=7
-
-REDIS_URL=redis://localhost:6379/0
-
-Do not commit your actual .env file or production secrets to GitHub.
-
-🐍 Local Setup
-Clone the repository git clone https://github.com/mdshareef786/Warehouse-Inventory-Procurement-Management-Platform.git cd Warehouse-Inventory-Procurement-Management-Platform
-Create a virtual environment
-Windows:
-
-python -m venv venv
-
-Activate:
-
-venv\Scripts\activate
-
-Linux/macOS:
-
-python3 -m venv venv source venv/bin/activate 3. Install dependencies pip install -r requirements.txt 4. Configure environment variables
-
-Create:
-
-.env
-
-using:
-
-.env.example
-
-and configure the PostgreSQL and Redis connection details.
-
-Run database migrations alembic upgrade head
-Start the FastAPI server uvicorn app.main:app --reload
-The API will be available at:
-
-http://127.0.0.1:8000
-
-📚 API Documentation
-FastAPI automatically provides interactive API documentation.
-
-Swagger UI:
-
-http://127.0.0.1:8000/docs
-
-ReDoc:
-
-http://127.0.0.1:8000/redoc
-
-The Swagger UI can be used to:
-
-View endpoints Inspect request schemas Test APIs Authenticate using JWT Inspect responses
-
-🧪 Testing
-The project contains unit and API authentication tests using Pytest.
+* **Pytest**
+* **pytest-asyncio**
+* **HTTPX**
+* FastAPI async test clients
 
 Run the complete test suite:
 
+```bash
 pytest -v
-
-Current test result:
-
-92 passed 1 warning
-
-Test coverage includes:
-
-Authentication Protected endpoints Invalid tokens Invalid credentials Registration validation Refresh token validation Logout validation Inventory Stock in Stock out Insufficient stock Reserve Release Damaged inventory Adjustments Reconciliation Quantity validation Cache hit Cache miss Purchase Orders PO number generation Submission Approval Rejection Cancellation Ordering Full receiving Partial receiving Quantity validation Status validation Goods Receipts Receipt number generation Receipt creation Partial receiving Duplicate product validation Product validation Excess quantity validation Transaction rollback Stock Transfers Transfer number generation Transfer creation Warehouse validation Duplicate product validation Approval Rejection Dispatch Receiving Insufficient stock validation Status validation Other Health endpoint Analytics authentication WebSocket functionality
-
-🧪 Test Command Examples
-Run all tests:
-
-pytest -v
+```
 
 Run inventory tests:
 
-pytest -v tests/test_inventory_service.py
+```bash
+pytest -v tests/test_inventory.py
+```
+
+Run authentication tests:
+
+```bash
+pytest -v tests/test_auth.py
+```
 
 Run purchase order tests:
 
-pytest -v tests/test_purchase_order_service.py
+```bash
+pytest -v tests/test_purchase_orders.py
+```
 
-Run goods receipt tests:
+Run transfer tests:
 
-pytest -v tests/test_goods_receipt_service.py
+```bash
+pytest -v tests/test_transfers.py
+```
 
-Run stock transfer tests:
+The test suite covers important workflows including authentication, inventory operations, purchase orders, transfers, alerts, and API behavior.
 
-pytest -v tests/test_stock_transfer_service.py
+---
 
-Run API authentication tests:
+# 🔐 Security
 
-pytest -v tests/test_inventory.py
+The application includes several security mechanisms:
 
-🐳 Docker
-The project includes Docker configuration.
+* JWT access tokens
+* Refresh tokens
+* Password hashing
+* Protected API endpoints
+* Role-based authorization
+* Pydantic request validation
+* Environment-based configuration
+* Centralized exception handling
 
-Build and start the services:
+## Production recommendations
 
-docker-compose up --build
+Before deploying to production:
 
-Run in detached mode:
+* Replace development secrets
+* Use strong randomly generated JWT secrets
+* Use secure PostgreSQL credentials
+* Restrict CORS origins
+* Enable HTTPS
+* Secure Redis
+* Configure proper SMTP credentials
+* Add structured logging
+* Add monitoring and alerting
+* Keep `.env` and other secrets outside source control
 
-docker-compose up -d
+---
 
-Stop the services:
+# 🧠 Design Principles
 
-docker-compose down
+The project is structured around several backend engineering principles.
 
-🔒 Security Considerations
-The application includes several security practices:
+### Separation of Concerns
 
-JWT authentication Refresh token mechanism Password hashing Protected API routes Role-based authorization Environment-based configuration Secret management through environment variables Input validation using Pydantic Database-level ORM abstraction Custom exception handling
+API routes focus on HTTP-level responsibilities while business logic is handled by dedicated services.
 
-Production deployments should additionally use:
+### Service-Oriented Business Logic
 
-HTTPS Strong production secrets Secure database credentials Restricted CORS configuration Secure Redis configuration Proper logging and monitoring
+Core workflows such as inventory operations, purchase orders, transfers, forecasting, and authentication are implemented in service modules.
 
-🔁 Inventory Transaction Flow
-Every inventory movement follows a controlled service-layer process.
+### ORM-Based Persistence
 
-API Request
-    │
-    ▼
+SQLAlchemy provides the database abstraction layer over PostgreSQL.
+
+### Schema Validation
+
+Pydantic models provide structured request and response validation.
+
+### Transaction Safety
+
+Critical inventory and procurement operations use database operations designed to maintain consistent state.
+
+### Cache Consistency
+
+Inventory-changing operations trigger cache invalidation to reduce stale inventory data.
+
+### Asynchronous Architecture
+
+FastAPI and SQLAlchemy support asynchronous request/database processing while Celery handles background workloads.
+
+---
+
+# 🔗 API Modules
+
+The REST API is organized under:
+
+```text
+/api/v1
+```
+
+### Authentication
+
+```text
+/api/v1/register
+/api/v1/login
+/api/v1/refresh
+/api/v1/reset-password
+```
+
+### Warehouses
+
+```text
+/api/v1/warehouses
+```
+
+### Suppliers
+
+```text
+/api/v1/suppliers
+```
+
+### Products
+
+```text
+/api/v1/products
+```
+
+### Inventory
+
+```text
+/api/v1/inventory
+```
+
+Includes:
+
+```text
+GET  /api/v1/inventory
+POST /api/v1/inventory/stock-in
+POST /api/v1/inventory/stock-out
+POST /api/v1/inventory/adjust
+GET  /api/v1/inventory/history
+GET  /api/v1/inventory/forecast/{product_id}
+POST /api/v1/inventory/import-csv
+```
+
+### Purchase Orders
+
+```text
+/api/v1/purchase-orders
+```
+
+### Stock Transfers
+
+```text
+/api/v1/transfers
+```
+
+### Alerts
+
+```text
+/api/v1/alerts
+```
+
+### Analytics
+
+```text
+/api/v1/analytics
+```
+
+---
+
+# 📡 WebSocket Endpoints
+
+Real-time communication is available through:
+
+```text
+ws://127.0.0.1:8000/ws/inventory
+ws://127.0.0.1:8000/ws/alerts
+ws://127.0.0.1:8000/ws/transfers
+```
+
+---
+
+# 📌 Current Scope
+
+This repository currently focuses on the **backend platform and supporting infrastructure**.
+
+It includes:
+
+```text
+REST API
 Authentication
-    │
-    ▼
-Pydantic Validation
-    │
-    ▼
-Inventory Service
-    │
-    ├── Validate Product
-    ├── Validate Warehouse
-    ├── Validate Quantity
-    │
-    ▼
-Inventory Repository
-    │
-    ├── Update Inventory
-    └── Create Transaction
-    │
-    ▼
-Cache Invalidation
-    │
-    ▼
-Inventory Alert Check
-    │
-    ▼
-Response
-🧱 Design Principles
-The application follows several backend engineering principles:
+Authorization
+Inventory
+Procurement
+Warehouses
+Products
+Suppliers
+Transfers
+Alerts
+Analytics
+Caching
+WebSockets
+Background Processing
+Scheduled Tasks
+Database Migrations
+Testing
+Docker Infrastructure
+API Documentation
+```
 
-Separation of Concerns
+---
 
-Business logic is kept inside service classes instead of API routes.
+# 🔮 Future Enhancements
 
-Repository Pattern
+Potential future improvements include:
 
-Database operations are isolated inside repository classes.
+* 📊 Advanced analytics dashboards
+* 📑 Automated PDF/Excel reporting
+* 📦 Advanced demand forecasting
+* 🔍 Barcode/QR workflow expansion
+* 🧾 Audit log dashboard
+* 🔔 Production email notification integration
+* 🔐 More granular permissions
+* 📈 Observability and monitoring
+* 🚀 CI/CD automation
+* ☁️ Cloud deployment
+* 🖥️ Dedicated frontend dashboard
+* 📱 Mobile warehouse operations interface
 
-Service Layer
+---
 
-Business rules such as inventory validation, procurement workflows, and stock transfers are handled by dedicated services.
+# 🤝 Contributing
 
-Schema Validation
+Contributions are welcome.
 
-Pydantic schemas validate incoming and outgoing API data.
+A typical development workflow is:
 
-Centralized Exception Handling
+```bash
+git checkout -b feature/your-feature
+```
 
-Custom exceptions provide consistent business error handling.
+Make your changes, run the tests:
 
-Transaction Safety
+```bash
+pytest -v
+```
 
-Critical operations use database transactions and rollback handling to prevent inconsistent inventory states.
+Then commit:
 
-Cache Consistency
+```bash
+git add .
+git commit -m "Describe your changes"
+```
 
-Inventory cache is invalidated after stock-changing operations.
+Push your branch:
 
-# Test Summary
-Latest full test execution:
+```bash
+git push origin feature/your-feature
+```
 
-============================= test session starts =============================
+Then open a pull request.
 
-collected 92 items
+---
 
-92 passed, 1 warning
+# 📄 License
 
-============================== 92 passed ==============================
+No license file is currently included in the project repository.
 
-#Future Improvements
-Possible future enhancements include:
+If this project is intended to be open source, add an appropriate `LICENSE` file before publishing it for external contributions.
 
-Advanced reporting Export analytics to CSV/Excel/PDF Advanced inventory forecasting Barcode/QR code integration Audit log dashboard More granular permissions Automated email notifications Advanced Redis caching strategies Production monitoring CI/CD pipeline Cloud deployment Frontend dashboard if required in a future phase
+---
 
-👨‍💻 Author
-Rahul raj k
-Python Developer
+# 👨‍💻 AUTHOR
+
+# **RAHUL RAJ**
+
+### **PYTHON BACKEND DEVELOPER**
+
+> Building scalable backend systems with **Python • FastAPI • PostgreSQL • Redis • Celery • Docker**
+
